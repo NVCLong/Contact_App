@@ -4,8 +4,8 @@ import com.rs.retailstore.model.AuthenticationResponse;
 import com.rs.retailstore.model.Customer;
 import com.rs.retailstore.respository.CustomerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
-import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -21,9 +21,15 @@ public class CustomerService  {
     JwtService jwtService;
     @Autowired
     PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
+
+    public CustomerService(AuthenticationManager authenticationManager) {
+        this.authenticationManager = authenticationManager;
+    }
 
 
     public AuthenticationResponse createCustomer(Customer request) {
+        System.out.println("register");
         Random random = new Random();
         System.out.println(request);
         System.out.println(customerRepository.findByUsername("admin"));
@@ -40,6 +46,30 @@ public class CustomerService  {
         customerRepository.save(customer);
         return new AuthenticationResponse("Create user successfully with the Username "+ customer.getUsername());
 
+    }
+
+    public AuthenticationResponse loginUser(Customer request){
+        System.out.println("login");
+        System.out.println(request.getPassword());
+        System.out.println(request);
+        System.out.println(passwordEncoder.encode(request.getPassword()));
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getUsername(),
+                        request.getPassword()
+                )
+        );
+        if(customerRepository.findByUsername(request.getUsername()).isEmpty()){
+            return new AuthenticationResponse(null,"Username is uncorrected");
+        }
+        Customer customer = customerRepository.findByUsername(request.getUsername()).get(0);
+        if(customer.getPassword().equals(passwordEncoder.encode(request.getPassword()))){
+            String token= jwtService.generateToken(customer);
+            return new AuthenticationResponse(token,"This is a  token and  user name is "+ customer.getUsername());
+        }
+        else {
+            return new AuthenticationResponse(null, "Wrong password");
+        }
     }
 
 }

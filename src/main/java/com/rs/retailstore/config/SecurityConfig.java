@@ -36,7 +36,7 @@ public class SecurityConfig{
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(req-> req
-                                .requestMatchers( antMatcher("/register*")).permitAll()
+                                .requestMatchers( "/register","/loginUser").permitAll()
                                 .anyRequest().authenticated()
                         )
                 .userDetailsService(customerService)
@@ -46,7 +46,7 @@ public class SecurityConfig{
     }
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return new BCryptPasswordEncoder(8);
     }
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {

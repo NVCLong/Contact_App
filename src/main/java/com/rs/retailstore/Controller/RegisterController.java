@@ -26,7 +26,7 @@ public class RegisterController {
         return ResponseEntity.ok(customerService.createCustomer(request));
     }
 
-    @PostMapping(value="/loginUser", produces="application/json", consumes = "application/json")
+    @PostMapping(value="/login", produces="application/json", consumes = "application/json")
     public ResponseEntity<AuthenticationResponse> login(@RequestBody Customer request) {
         return ResponseEntity.ok(customerService.loginUser(request));
     }

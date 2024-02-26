@@ -63,13 +63,8 @@ public class CustomerService  {
             return new AuthenticationResponse(null,"Username is uncorrected");
         }
         Customer customer = customerRepository.findByUsername(request.getUsername()).get(0);
-        if(customer.getPassword().equals(passwordEncoder.encode(request.getPassword()))){
             String token= jwtService.generateToken(customer);
             return new AuthenticationResponse(token,"This is a  token and  user name is "+ customer.getUsername());
-        }
-        else {
-            return new AuthenticationResponse(null, "Wrong password");
-        }
     }
 
 }

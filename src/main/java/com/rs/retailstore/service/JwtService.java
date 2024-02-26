@@ -9,7 +9,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
-import java.sql.Date;
+import java.util.Date;
 import java.util.function.Function;
 
 ;
@@ -25,11 +25,15 @@ public class JwtService {
 
     public boolean isValid(String token, UserDetails user){
         String username= extractUsername(token);
-        return (username.equals(user.getUsername())&&isTokenExpired(token));
+        System.out.println(username.equals(user.getUsername()));
+        System.out.println(isTokenExpired(token));
+        return (username.equals(user.getUsername())&&!isTokenExpired(token));
     }
 
     public boolean isTokenExpired(String token){
-        return extractExpiration(token).before(new Date(System.currentTimeMillis()));
+        System.out.println(extractExpiration(token));
+        System.out.println(new Date());
+        return extractExpiration(token).before(new Date());
     }
 
     private java.util.Date extractExpiration(String token){
@@ -55,7 +59,7 @@ public class JwtService {
                 builder()
                 .subject(customer.getUsername())
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis()+24*60*60*1000))
+                .expiration(new Date(System.currentTimeMillis() + 24*60*60*1000))
                 .signWith(getSigninKey())
                 .compact();
         return token;

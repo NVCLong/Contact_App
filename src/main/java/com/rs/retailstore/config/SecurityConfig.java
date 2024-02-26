@@ -1,9 +1,11 @@
 package com.rs.retailstore.config;
 
 import com.rs.retailstore.filter.JwtAuthenticationFilter;
-import com.rs.retailstore.service.RetailsStoreUserDetail;
+import com.rs.retailstore.service.UserDetailsImp;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -14,6 +16,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import static org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher;
@@ -21,14 +24,11 @@ import static org.springframework.security.web.util.matcher.AntPathRequestMatche
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@RequiredArgsConstructor
 public class SecurityConfig{
-    private final RetailsStoreUserDetail customerService;
+    private final UserDetailsImp customerService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    public SecurityConfig(RetailsStoreUserDetail customerService, JwtAuthenticationFilter jwtAuthenticationFilter) {
-        this.customerService = customerService;
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
@@ -42,11 +42,17 @@ public class SecurityConfig{
                 .userDetailsService(customerService)
                 .sessionManagement(session-> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(
+                        e->e.accessDeniedHandler(
+                                        (request, response, accessDeniedException)->response.setStatus(403)
+                                )
+                                .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
                 .build();
     }
+
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(8);
+        return new BCryptPasswordEncoder();
     }
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {

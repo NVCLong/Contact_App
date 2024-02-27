@@ -1,5 +1,6 @@
 package com.rs.retailstore.model;
 
+import ch.qos.logback.core.model.INamedModel;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,7 +14,7 @@ import lombok.NonNull;
 public class Customer {
     @Id
 //    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     private String username;
     private String password;

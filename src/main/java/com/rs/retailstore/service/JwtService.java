@@ -1,6 +1,7 @@
 package com.rs.retailstore.service;
 
 import com.rs.retailstore.model.Customer;
+import com.rs.retailstore.respository.TokenRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -17,6 +18,12 @@ import java.util.function.Function;
 @Service
 public class JwtService {
     private final String SECRET_KEY= "f241085f6e34a99c4da1501d55025d8a7d06b1eaababb3531220aff24c211693";
+    private  final TokenRepository tokenRepository;
+
+    public JwtService(TokenRepository tokenRepository) {
+        this.tokenRepository = tokenRepository;
+    }
+
     public <T> T extractClaim(String token, Function<Claims,T> resolver){
         Claims claims = extractAllClaims(token);
         return resolver.apply(claims);
@@ -25,9 +32,14 @@ public class JwtService {
 
     public boolean isValid(String token, UserDetails user){
         String username= extractUsername(token);
-        System.out.println(username.equals(user.getUsername()));
         System.out.println(isTokenExpired(token));
-        return (username.equals(user.getUsername())&&!isTokenExpired(token));
+        System.out.println(username.equals(user.getUsername()));
+        boolean isValidToken= tokenRepository.findByToken(token)
+                .map(t-> !t.isLoggedOut()).orElse(false);
+        System.out.println(isValidToken);
+        System.out.println((username.equals(user.getUsername())&&!isTokenExpired(token)&&!isValidToken));
+
+        return (username.equals(user.getUsername())&&!isTokenExpired(token)&&isValidToken);
     }
 
     public boolean isTokenExpired(String token){

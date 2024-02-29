@@ -71,11 +71,6 @@ public class CustomerService {
     }
 
     public AuthenticationResponse loginUser(Customer request){
-        System.out.println("login");
-        System.out.println(request.getPassword());
-        System.out.println(request);
-        System.out.println(passwordEncoder.encode(request.getPassword()));
-
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getUsername(),

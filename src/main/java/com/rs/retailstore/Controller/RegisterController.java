@@ -28,8 +28,6 @@ public class RegisterController {
     }
     @PostMapping(value="/login", produces="application/json", consumes = "application/json")
     public <response> ResponseEntity<AuthenticationResponse> login(@RequestBody Customer request) {
-        HttpHeaders responseHeaders = new HttpHeaders();
-        responseHeaders.setBearerAuth(customerService.loginUser(request).getToken());
-        return ResponseEntity.ok().header(String.valueOf(responseHeaders)).body(customerService.loginUser(request));
+        return ResponseEntity.ok().body(customerService.loginUser(request));
     }
 }

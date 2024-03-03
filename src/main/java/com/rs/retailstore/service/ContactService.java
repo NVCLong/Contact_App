@@ -53,8 +53,9 @@ public class ContactService {
 
     public ContactList addToList(int id, int contactId) {
         try {
-            System.out.println(contactId);
+            Random rd= new Random();
             ContactList contactList = new ContactList();
+            contactList.setId(rd.nextInt(0,1000000));
             contactList.setUserId(id);
             Contact contact=contactRepository.findById(contactId).orElseThrow();
             contactList.setContact(contact);
@@ -66,7 +67,7 @@ public class ContactService {
     }
     public List<Contact> getListContact(int  id){
         try {
-            List<ContactList> contactList = contactRelationshipRepo.findContactListById(id);
+            List<ContactList> contactList = contactRelationshipRepo.findContactListByUserId(id);
             System.out.println(contactList);
             List<Contact> list = new ArrayList<>();
             for (ContactList cl : contactList) {

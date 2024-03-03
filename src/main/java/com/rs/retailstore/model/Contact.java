@@ -1,12 +1,11 @@
 package com.rs.retailstore.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.UuidGenerator;
+
+import java.util.List;
 
 @Entity
 @Data
@@ -22,4 +21,5 @@ public class Contact {
     private String address;
     private String status;
     private String photoUrl;
+
 }

@@ -1,9 +1,11 @@
 package com.rs.retailstore.service;
 
 import com.rs.retailstore.model.Contact;
+import com.rs.retailstore.model.ContactList;
+import com.rs.retailstore.respository.ContactRelationshipRepo;
 import com.rs.retailstore.respository.ContactRepository;
+import com.sun.jdi.InternalException;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -16,6 +18,8 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import java.util.function.BiFunction;
@@ -29,17 +33,49 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 public class ContactService {
     @Autowired
     private final ContactRepository contactRepository;
+    @Autowired
+    private  final ContactRelationshipRepo contactRelationshipRepo;
 
-    public ContactService(ContactRepository contactRepository) {
+    public ContactService(ContactRepository contactRepository, ContactRelationshipRepo contactRelationshipRepo) {
         this.contactRepository = contactRepository;
+        this.contactRelationshipRepo = contactRelationshipRepo;
     }
 
     public Page<Contact> getALlContacts(int page, int size){
+
             return  contactRepository.findAll(PageRequest.of(page, size, Sort.by("name")));
     }
 
+
     public Contact getContact(int id){
         return  contactRepository.findById(id).orElseThrow();
+    }
+
+    public ContactList addToList(int id, int contactId) {
+        try {
+            System.out.println(contactId);
+            ContactList contactList = new ContactList();
+            contactList.setUserId(id);
+            Contact contact=contactRepository.findById(contactId).orElseThrow();
+            contactList.setContact(contact);
+            contactRelationshipRepo.save(contactList);
+            return contactList;
+        }catch (Exception e){
+            throw  new InternalException("Error while adding");
+        }
+    }
+    public List<Contact> getListContact(int  id){
+        try {
+            List<ContactList> contactList = contactRelationshipRepo.findContactListById(id);
+            System.out.println(contactList);
+            List<Contact> list = new ArrayList<>();
+            for (ContactList cl : contactList) {
+                list.add(cl.getContact());
+            }
+            return list;
+        }catch (Exception e){
+            throw  new InternalException("Error while get contactList");
+        }
     }
 
     public Contact createContact(Contact contact){

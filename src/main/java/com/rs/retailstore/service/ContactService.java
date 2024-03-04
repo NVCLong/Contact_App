@@ -5,6 +5,7 @@ import com.rs.retailstore.model.ContactList;
 import com.rs.retailstore.respository.ContactRelationshipRepo;
 import com.rs.retailstore.respository.ContactRepository;
 import com.sun.jdi.InternalException;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import lombok.Data;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,8 +81,6 @@ public class ContactService {
     }
 
     public Contact createContact(Contact contact){
-        Random random = new Random();
-        contact.setId(random.nextInt(0,10000));
         return contactRepository.save(contact);
     }
 
@@ -91,7 +90,8 @@ public class ContactService {
 
     public String uploadPhoto(int id, MultipartFile file){
         Contact contact= getContact(id);
-        String photoUrl= null;
+        String photoUrl= photoFunction.apply(id,file);
+        System.out.println("photo url: "+photoUrl);
         contact.setPhotoUrl(photoUrl);
         contactRepository.save(contact);
         return photoUrl;
@@ -102,20 +102,23 @@ public class ContactService {
 
 
 
-    private final BiFunction<String, MultipartFile, String> photoFunction=( id, image)->{
+    private final BiFunction<Integer, MultipartFile, String> photoFunction=( id, image)->{
         String filename= id+ fileExtension.apply(image.getOriginalFilename());
+        System.out.println(filename);
         try{
             //get specific location in computer to store photo image
             Path fileStorageLocation= Paths.get(PHOTO_DIRECTORY).toAbsolutePath().normalize();
+            System.out.println(fileStorageLocation);
+            System.out.println(PHOTO_DIRECTORY + filename);
             if(!Files.exists(fileStorageLocation)){
                 Files.createDirectories(fileStorageLocation);
 
             }
             Files.copy(image.getInputStream(),fileStorageLocation.resolve(id+".png"),REPLACE_EXISTING);
-            return ServletUriComponentsBuilder.fromCurrentContextPath().path("/contacts/image"+filename).toUriString();
+            return ServletUriComponentsBuilder.fromCurrentContextPath().path("/contact/image/"+filename).toUriString();
         }catch(Exception e){
             System.out.println(e);
-            throw new RuntimeException("unable ton save image");
+            throw new RuntimeException("unable to save image");
         }
     };
 

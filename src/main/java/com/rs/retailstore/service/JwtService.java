@@ -52,6 +52,8 @@ public class JwtService {
         return extractClaim(token,Claims::getExpiration);
     }
 
+    public String extractId(String token){ return extractClaim(token,Claims::getId);}
+
 
 
     public String extractUsername(String token){
@@ -70,6 +72,7 @@ public class JwtService {
         String token= Jwts.
                 builder()
                 .subject(customer.getUsername())
+                .id(customer.getId().toString())
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + 24*60*60*1000))
                 .signWith(getSigninKey())

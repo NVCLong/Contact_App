@@ -3,6 +3,7 @@ package com.rs.retailstore.Controller;
 import com.rs.retailstore.model.Contact;
 import com.rs.retailstore.model.ContactList;
 import com.rs.retailstore.service.ContactService;
+import com.rs.retailstore.service.JwtService;
 import jakarta.websocket.server.PathParam;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
@@ -27,13 +29,20 @@ public class ContactController {
 
     @Autowired
     ContactService contactService;
+    @Autowired
+    JwtService jwtService;
 
     public ContactController(ContactService contactService) {
         this.contactService = contactService;
     }
 
     @PostMapping(value="/contact/create", produces="application/json", consumes = "application/json")
-    public ResponseEntity<String> createContact(@RequestBody Contact request){
+    public ResponseEntity<String> createContact(@RequestBody Contact request, @RequestHeader("Authorization") String header){
+        String token= header.substring(7);
+        String name= jwtService.extractUsername(token);
+        String id= jwtService.extractId(token);
+        request.setId(Integer.parseInt(id));
+        request.setName(name);
         System.out.println(request);
         contactService.createContact(request);
         Contact contact = contactService.getContact(request.getId());
@@ -47,23 +56,34 @@ public class ContactController {
         System.out.println("Contact : "+contactId);
         return ResponseEntity.ok(contactService.getContact(contactId));
     }
-    @GetMapping("/contact/{contactId}")
-    public ResponseEntity<Contact> getContact(@PathVariable("contactId") int contactId){
-        return ResponseEntity.ok(contactService.getContact(contactId));
-    }
 
-    @PutMapping("/contact/photo")
-    public ResponseEntity<String> uploadPhoto(@RequestParam("id") int id, @RequestParam("file")MultipartFile file){
-        return  ResponseEntity.ok(contactService.uploadPhoto(id,file));
+    @PutMapping(value="/contact/photo",   produces="application/json", consumes = "multipart/form-data")
+    public ResponseEntity<String> uploadPhoto(@RequestParam("id") String id, @RequestParam("file") MultipartFile file){
+        try {
+            int Id = Integer.parseInt(id);
+            System.out.println(id);
+            return ResponseEntity.ok(contactService.uploadPhoto(Id, file));
+        }catch (NumberFormatException numberFormatException){
+            System.out.println(numberFormatException);
+            return ResponseEntity.badRequest().body("Invalid input id parameter");
+        }
     }
 
     @GetMapping("/contact/allContact")
     public ResponseEntity<Page<Contact>> getALlContact(@RequestParam(value="page", defaultValue = "0") int page, @RequestParam(value="size", defaultValue = "10") int size){
         return  ResponseEntity.ok(contactService.getALlContacts(page,size));
     }
-    @GetMapping(path="/contact/{filename}", produces={ IMAGE_PNG_VALUE, IMAGE_JPEG_VALUE})
-    public byte[] getPhoto(@PathVariable("filename") String filename) throws IOException {
-        return Files.readAllBytes(Paths.get(PHOTO_DIRECTORY + filename));
+    @GetMapping(value="/contact/image/{filename}", produces={ IMAGE_PNG_VALUE, IMAGE_JPEG_VALUE})
+    public ResponseEntity<byte[]> getPhoto(@PathVariable("filename") String filename) throws IOException {
+        System.out.println("Running");
+        try {
+            filename=filename.replace(".JPG",".png");
+            Path fileStorageLocation= Paths.get(PHOTO_DIRECTORY).toAbsolutePath().normalize();
+            return ResponseEntity.ok(Files.readAllBytes(Paths.get(fileStorageLocation+"/"+filename)));
+        }catch (IOException e){
+            System.out.println(e);
+            return null;
+        }
     }
     @GetMapping(path = "/contact/getList/{contactId}")
     public ResponseEntity<List<Contact>> getList(@PathVariable("contactId")int id){

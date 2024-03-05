@@ -14,9 +14,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.rs.retailstore.constant.Constant.PHOTO_DIRECTORY;
@@ -93,7 +95,8 @@ public class ContactController {
 
     @PostMapping(value="/contact/addList/{contactId}",  produces="application/json", consumes = "application/json")
     public ResponseEntity<ContactList> addList(@PathVariable("contactId") Integer contactId, @RequestBody Contact contact) throws Exception {
-        System.out.println(contactId+" "+ contact);
-        return  ResponseEntity.ok(contactService.addToList(contactId,contact.getId()));
+        System.out.println(contactId+" "+ contact.getPhone());
+        System.out.println("contact : "+contact);
+        return  ResponseEntity.ok(contactService.addToList(contactId,contact.getPhone()));
     }
 }

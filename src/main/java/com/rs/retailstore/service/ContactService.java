@@ -19,10 +19,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -44,7 +41,7 @@ public class ContactService {
 
     public Page<Contact> getALlContacts(int page, int size){
 
-            return  contactRepository.findAll(PageRequest.of(page, size, Sort.by("name")));
+            return (Page<Contact>) contactRepository.findAll(PageRequest.of(page, size, Sort.by("name")));
     }
 
 
@@ -52,17 +49,26 @@ public class ContactService {
         return  contactRepository.findById(id).orElseThrow();
     }
 
-    public ContactList addToList(int id, int contactId) {
+    public ContactList addToList(int id, String phone) {
+        System.out.println(phone);
         try {
             Random rd= new Random();
             ContactList contactList = new ContactList();
             contactList.setId(rd.nextInt(0,1000000));
             contactList.setUserId(id);
-            Contact contact=contactRepository.findById(contactId).orElseThrow();
-            contactList.setContact(contact);
-            contactRelationshipRepo.save(contactList);
-            return contactList;
+            System.out.println(phone);
+            Contact contact=contactRepository.findByPhone(phone).orElseThrow();
+            System.out.println(contact);
+            if(contact.getId().equals(id) || contact==null){
+                return null;
+            }else  {
+                System.out.println(contact);
+                contactList.setContact(contact);
+                contactRelationshipRepo.save(contactList);
+                return contactList;
+            }
         }catch (Exception e){
+            System.out.println(e);
             throw  new InternalException("Error while adding");
         }
     }
@@ -70,7 +76,7 @@ public class ContactService {
         try {
             List<ContactList> contactList = contactRelationshipRepo.findContactListByUserId(id);
             System.out.println(contactList);
-            List<Contact> list = new ArrayList<>();
+           List<Contact> list = new ArrayList<>();
             for (ContactList cl : contactList) {
                 list.add(cl.getContact());
             }
